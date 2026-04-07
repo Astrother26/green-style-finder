@@ -14,7 +14,335 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cart_items: {
+        Row: {
+          added_at: string | null
+          carbon_kg: number | null
+          id: string
+          product_image: string | null
+          product_name: string | null
+          product_price: number | null
+          product_sku: string | null
+          quantity: number | null
+          user_id: string
+          water_liters: number | null
+        }
+        Insert: {
+          added_at?: string | null
+          carbon_kg?: number | null
+          id?: string
+          product_image?: string | null
+          product_name?: string | null
+          product_price?: number | null
+          product_sku?: string | null
+          quantity?: number | null
+          user_id: string
+          water_liters?: number | null
+        }
+        Update: {
+          added_at?: string | null
+          carbon_kg?: number | null
+          id?: string
+          product_image?: string | null
+          product_name?: string | null
+          product_price?: number | null
+          product_sku?: string | null
+          quantity?: number | null
+          user_id?: string
+          water_liters?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listings: {
+        Row: {
+          category: string | null
+          condition: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          images: string[] | null
+          original_price: number | null
+          price: number | null
+          size: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          views: number | null
+        }
+        Insert: {
+          category?: string | null
+          condition?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          original_price?: number | null
+          price?: number | null
+          size?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          views?: number | null
+        }
+        Update: {
+          category?: string | null
+          condition?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          original_price?: number | null
+          price?: number | null
+          size?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string | null
+          id: string
+          items: Json | null
+          order_number: string | null
+          shipping: number | null
+          status: string | null
+          subtotal: number | null
+          tax: number | null
+          total_carbon_saved: number | null
+          total_price: number | null
+          total_water_saved: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          items?: Json | null
+          order_number?: string | null
+          shipping?: number | null
+          status?: string | null
+          subtotal?: number | null
+          tax?: number | null
+          total_carbon_saved?: number | null
+          total_price?: number | null
+          total_water_saved?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          items?: Json | null
+          order_number?: string | null
+          shipping?: number | null
+          status?: string | null
+          subtotal?: number | null
+          tax?: number | null
+          total_carbon_saved?: number | null
+          total_price?: number | null
+          total_water_saved?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          brand: string | null
+          carbon_kg: number | null
+          category: string | null
+          created_at: string | null
+          energy_mj: number | null
+          fabric: string | null
+          fibre: string | null
+          gender: string | null
+          id: string
+          image_path: string | null
+          image_url: string | null
+          match_score: number | null
+          name: string
+          original_price: number | null
+          price: number | null
+          sku: string | null
+          source_url: string | null
+          sustainability_grade: string | null
+          sustainability_score: number | null
+          water_liters: number | null
+        }
+        Insert: {
+          brand?: string | null
+          carbon_kg?: number | null
+          category?: string | null
+          created_at?: string | null
+          energy_mj?: number | null
+          fabric?: string | null
+          fibre?: string | null
+          gender?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          match_score?: number | null
+          name: string
+          original_price?: number | null
+          price?: number | null
+          sku?: string | null
+          source_url?: string | null
+          sustainability_grade?: string | null
+          sustainability_score?: number | null
+          water_liters?: number | null
+        }
+        Update: {
+          brand?: string | null
+          carbon_kg?: number | null
+          category?: string | null
+          created_at?: string | null
+          energy_mj?: number | null
+          fabric?: string | null
+          fibre?: string | null
+          gender?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          match_score?: number | null
+          name?: string
+          original_price?: number | null
+          price?: number | null
+          sku?: string | null
+          source_url?: string | null
+          sustainability_grade?: string | null
+          sustainability_score?: number | null
+          water_liters?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          achievements: string[] | null
+          avatar_url: string | null
+          created_at: string | null
+          eco_level: number | null
+          id: string
+          name: string | null
+          total_carbon_saved: number | null
+          total_energy_saved: number | null
+          total_items_listed: number | null
+          total_items_purchased: number | null
+          total_rentals: number | null
+          total_water_saved: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          achievements?: string[] | null
+          avatar_url?: string | null
+          created_at?: string | null
+          eco_level?: number | null
+          id: string
+          name?: string | null
+          total_carbon_saved?: number | null
+          total_energy_saved?: number | null
+          total_items_listed?: number | null
+          total_items_purchased?: number | null
+          total_rentals?: number | null
+          total_water_saved?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          achievements?: string[] | null
+          avatar_url?: string | null
+          created_at?: string | null
+          eco_level?: number | null
+          id?: string
+          name?: string | null
+          total_carbon_saved?: number | null
+          total_energy_saved?: number | null
+          total_items_listed?: number | null
+          total_items_purchased?: number | null
+          total_rentals?: number | null
+          total_water_saved?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      rentals: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          end_date: string | null
+          id: string
+          item_name: string
+          notes: string | null
+          occasion: string | null
+          phone: string | null
+          size: string | null
+          start_date: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          item_name: string
+          notes?: string | null
+          occasion?: string | null
+          phone?: string | null
+          size?: string | null
+          start_date?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          item_name?: string
+          notes?: string | null
+          occasion?: string | null
+          phone?: string | null
+          size?: string | null
+          start_date?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rentals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

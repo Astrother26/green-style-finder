@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ShoppingCart, User, Leaf } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, ShoppingCart, User, Leaf, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const navItems = [
   { path: "/", label: "Home" },
@@ -14,6 +16,14 @@ const navItems = [
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    navigate("/");
+  };
 
   return (
     <nav className="bg-card sticky top-0 z-50 shadow-sm">
@@ -23,7 +33,6 @@ const Navbar = () => {
           EcoThrift
         </Link>
 
-        {/* Desktop */}
         <ul className="hidden md:flex items-center gap-6">
           {navItems.map((item) => (
             <li key={item.path}>
@@ -45,25 +54,31 @@ const Navbar = () => {
               <ShoppingCart className="h-5 w-5" />
             </Button>
           </Link>
-          <Link to="/profile">
-            <Button variant="ghost" size="icon" className="text-primary">
-              <User className="h-5 w-5" />
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6">
-              Sign In
-            </Button>
-          </Link>
+          {user ? (
+            <>
+              <Link to="/profile">
+                <Button variant="ghost" size="icon" className="text-primary">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Button variant="ghost" size="icon" className="text-primary" onClick={handleSignOut}>
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </>
+          ) : (
+            <Link to="/login">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </div>
 
-        {/* Mobile toggle */}
         <button className="md:hidden text-primary" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
-      {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden bg-card border-t border-border px-4 pb-4">
           <ul className="flex flex-col gap-2 pt-2">
@@ -84,12 +99,20 @@ const Navbar = () => {
               <Link to="/cart" onClick={() => setMobileOpen(false)}>
                 <Button variant="outline" size="sm"><ShoppingCart className="h-4 w-4 mr-1" /> Cart</Button>
               </Link>
-              <Link to="/profile" onClick={() => setMobileOpen(false)}>
-                <Button variant="outline" size="sm"><User className="h-4 w-4 mr-1" /> Profile</Button>
-              </Link>
-              <Link to="/login" onClick={() => setMobileOpen(false)}>
-                <Button size="sm" className="bg-primary text-primary-foreground">Sign In</Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link to="/profile" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" size="sm"><User className="h-4 w-4 mr-1" /> Profile</Button>
+                  </Link>
+                  <Button variant="outline" size="sm" onClick={() => { handleSignOut(); setMobileOpen(false); }}>
+                    <LogOut className="h-4 w-4 mr-1" /> Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Link to="/login" onClick={() => setMobileOpen(false)}>
+                  <Button size="sm" className="bg-primary text-primary-foreground">Sign In</Button>
+                </Link>
+              )}
             </li>
           </ul>
         </div>

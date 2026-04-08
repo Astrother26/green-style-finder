@@ -220,7 +220,6 @@ export async function createRental(rental: {
   if (error) throw error;
 
   // Update rental count
-  await supabase.rpc("", {}).catch(() => {});
   const { data: profile } = await supabase.from("profiles").select("total_rentals, achievements").eq("id", user.id).single();
   if (profile) {
     const achievements = [...(profile.achievements || [])];

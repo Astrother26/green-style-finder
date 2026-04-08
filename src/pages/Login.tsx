@@ -3,16 +3,34 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Leaf } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const [isSignup, setIsSignup] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const { signUp, signIn } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(isSignup ? "Account created! 🌱" : "Welcome back! 🌿");
+    setLoading(true);
+    try {
+      if (isSignup) {
+        await signUp(form.email, form.password, form.name);
+        toast.success("Account created! Check your email to confirm. 🌱");
+      } else {
+        await signIn(form.email, form.password);
+        toast.success("Welcome back! 🌿");
+        navigate("/");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,9 +53,9 @@ const Login = () => {
             <Input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="rounded-xl" />
           )}
           <Input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required className="rounded-xl" />
-          <Input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required className="rounded-xl" />
-          <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full">
-            {isSignup ? "Sign Up" : "Sign In"}
+          <Input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={6} className="rounded-xl" />
+          <Button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full">
+            {loading ? "Please wait..." : isSignup ? "Sign Up" : "Sign In"}
           </Button>
         </form>
 

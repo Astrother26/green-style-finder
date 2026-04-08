@@ -1,10 +1,13 @@
 import { useState, useCallback } from "react";
-import { Upload, Search, Leaf, Recycle, BarChart3 } from "lucide-react";
+import { Upload, Search, Leaf, Recycle, BarChart3, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard, { type Product } from "@/components/ProductCard";
+import { uploadAndRecommend, addToCart } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 const sampleProducts: Product[] = [
   { name: "Organic Cotton T-Shirt", brand: "EcoWear", price: 899, image_url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop", category: "Tops", gender: "unisex", fabric: "organic_cotton", carbon_kg: 0.7, sustainability_grade: "A+", sustainability_score: 95, match_score: 0.95 },
@@ -25,24 +28,64 @@ const features = [
 
 const Index = () => {
   const [dragActive, setDragActive] = useState(false);
-  const [, setUploadedFile] = useState<File | null>(null);
-  const [showProducts, setShowProducts] = useState(true);
+  const [products, setProducts] = useState<Product[]>(sampleProducts);
+  const [loading, setLoading] = useState(false);
+  const [analysis, setAnalysis] = useState<any>(null);
+  const { user } = useAuth();
+
+  const processImage = async (file: File) => {
+    setLoading(true);
+    setAnalysis(null);
+    try {
+      const result = await uploadAndRecommend(file);
+      if (result.recommendations.length > 0) {
+        setProducts(result.recommendations);
+        setAnalysis(result.analysis);
+        toast.success(`Found ${result.recommendations.length} sustainable alternatives!`);
+      } else {
+        toast.info("No products found, showing default collection");
+        setProducts(sampleProducts);
+      }
+    } catch (err: any) {
+      console.error("Recommend error:", err);
+      toast.error(err.message || "Failed to analyze image. Showing default products.");
+      setProducts(sampleProducts);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith("image/")) {
-      setUploadedFile(file);
-      setShowProducts(true);
+      processImage(file);
     }
   }, []);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
-      setShowProducts(true);
+    if (file) processImage(file);
+  };
+
+  const handleAddToCart = async (product: Product) => {
+    if (!user) {
+      toast.error("Please sign in to add items to cart");
+      return;
+    }
+    try {
+      await addToCart({
+        product_sku: (product as any).sku || product.name.replace(/\s/g, "-").toLowerCase(),
+        product_name: product.name,
+        product_price: product.price,
+        product_image: product.image_url,
+        carbon_kg: product.carbon_kg,
+        water_liters: product.water_liters || 0,
+      });
+      toast.success(`${product.name} added to cart! 🛒`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add to cart");
     }
   };
 
@@ -50,7 +93,6 @@ const Index = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      {/* Hero */}
       <section className="gradient-hero text-primary-foreground py-16 md:py-24 px-4 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-32 h-32 border border-primary-foreground/30 rounded-full" />
@@ -69,7 +111,6 @@ const Index = () => {
             Upload any clothing photo. Get sustainable alternatives with full carbon footprint analysis.
           </p>
 
-          {/* Upload Area */}
           <div
             onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
             onDragLeave={() => setDragActive(false)}
@@ -79,17 +120,35 @@ const Index = () => {
             }`}
             onClick={() => document.getElementById("fileInput")?.click()}
           >
-            <Upload className="h-10 w-10 mx-auto mb-3 opacity-70" />
-            <p className="font-semibold mb-1">Drop a clothing image here</p>
-            <p className="text-sm opacity-70">or click to browse • JPG, PNG up to 16MB</p>
-            <input id="fileInput" type="file" accept="image/*" className="hidden" onChange={handleFileInput} />
+            {loading ? (
+              <div className="flex flex-col items-center">
+                <Loader2 className="h-10 w-10 animate-spin mb-3" />
+                <p className="font-semibold">Analyzing your image...</p>
+                <p className="text-sm opacity-70">Finding sustainable alternatives</p>
+              </div>
+            ) : (
+              <>
+                <Upload className="h-10 w-10 mx-auto mb-3 opacity-70" />
+                <p className="font-semibold mb-1">Drop a clothing image here</p>
+                <p className="text-sm opacity-70">or click to browse • JPG, PNG up to 16MB</p>
+              </>
+            )}
+            <input id="fileInput" type="file" accept="image/*" className="hidden" onChange={handleFileInput} disabled={loading} />
           </div>
 
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <Button variant="outline" className="rounded-full border-primary-foreground/40 text-primary-foreground bg-transparent hover:bg-primary-foreground/10">
-              <Search className="h-4 w-4 mr-2" /> Browse Collection
-            </Button>
-          </div>
+          {analysis && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-center gap-2 mt-4 flex-wrap"
+            >
+              {Object.entries(analysis).map(([key, val]) => (
+                <span key={key} className="bg-primary-foreground/10 px-3 py-1 rounded-full text-xs font-medium capitalize">
+                  {key}: {val as string}
+                </span>
+              ))}
+            </motion.div>
+          )}
         </motion.div>
       </section>
 
@@ -116,16 +175,16 @@ const Index = () => {
       </section>
 
       {/* Products */}
-      {showProducts && (
-        <section className="container mx-auto px-4 pb-16">
-          <h2 className="font-serif text-3xl text-primary text-center mb-8">Sustainable Picks</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {sampleProducts.map((p) => (
-              <ProductCard key={p.name} product={p} onAddToCart={() => {}} />
-            ))}
-          </div>
-        </section>
-      )}
+      <section className="container mx-auto px-4 pb-16">
+        <h2 className="font-serif text-3xl text-primary text-center mb-8">
+          {analysis ? "AI Recommendations" : "Sustainable Picks"}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {products.map((p, i) => (
+            <ProductCard key={`${p.name}-${i}`} product={p} onAddToCart={() => handleAddToCart(p)} />
+          ))}
+        </div>
+      </section>
 
       <Footer />
     </div>

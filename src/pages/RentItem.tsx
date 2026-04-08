@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, Pen } from "lucide-react";
+import { CalendarDays, Pen, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/hooks/useAuth";
+import { createRental } from "@/lib/api";
 
 const sizes = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "Custom"];
 const occasions = [
@@ -22,10 +25,13 @@ const occasions = [
 ];
 
 const RentItem = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", phone: "", city: "", item: "", startDate: "", endDate: "", notes: "" });
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedOccasion, setSelectedOccasion] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [drawing, setDrawing] = useState(false);
 
@@ -69,29 +75,50 @@ const RentItem = () => {
   const clearSig = () => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
-    if (canvas && ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    if (canvas && ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
   const days = form.startDate && form.endDate
     ? Math.max(0, Math.ceil((new Date(form.endDate).getTime() - new Date(form.startDate).getTime()) / 86400000))
     : 0;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreed) return toast.error("Please accept the rental agreement");
-    toast.success("Rental request submitted! 🎉");
+    if (!user) { toast.error("Please sign in first"); navigate("/login"); return; }
+
+    setSubmitting(true);
+    try {
+      await createRental({
+        item_name: form.item,
+        size: selectedSize,
+        start_date: form.startDate || undefined,
+        end_date: form.endDate || undefined,
+        occasion: selectedOccasion,
+        city: form.city,
+        phone: form.phone,
+        notes: form.notes,
+      });
+      toast.success("Rental request submitted! 🎉");
+      setForm({ name: "", email: "", phone: "", city: "", item: "", startDate: "", endDate: "", notes: "" });
+      setSelectedSize("");
+      setSelectedOccasion("");
+      setAgreed(false);
+      clearSig();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to submit rental request");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-
       <section className="gradient-amber text-amber-foreground py-14 px-4 text-center relative overflow-hidden">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative z-10">
           <h1 className="font-serif text-4xl mb-2">Rent Fashion for Any <em>Occasion</em></h1>
-          <p className="opacity-85 max-w-lg mx-auto">Wear stunning designer pieces without the price tag. Return after the event — no waste, no guilt.</p>
+          <p className="opacity-85 max-w-lg mx-auto">Wear stunning designer pieces without the price tag.</p>
           <div className="flex justify-center gap-3 mt-5 flex-wrap">
             {["Choose Item", "Pick Dates", "Sign Agreement", "Receive & Enjoy"].map((s, i) => (
               <span key={s} className="bg-amber-foreground/10 border border-amber-foreground/20 backdrop-blur-sm rounded-xl px-3 py-1.5 text-xs font-medium">
@@ -104,7 +131,6 @@ const RentItem = () => {
 
       <section className="container mx-auto px-4 py-10 max-w-3xl flex-1 -mt-4 relative z-10">
         <form onSubmit={handleSubmit} className="bg-card rounded-2xl shadow-xl overflow-hidden">
-          {/* Personal Details */}
           <div className="p-6 border-b border-border">
             <h3 className="font-sans font-bold text-primary mb-4 flex items-center gap-2">
               <span className="w-8 h-8 rounded-lg bg-amber/10 flex items-center justify-center text-amber text-sm">👤</span>
@@ -118,7 +144,6 @@ const RentItem = () => {
             </div>
           </div>
 
-          {/* Item */}
           <div className="p-6 border-b border-border">
             <h3 className="font-sans font-bold text-primary mb-4 flex items-center gap-2">
               <span className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary text-sm">👗</span>
@@ -127,7 +152,6 @@ const RentItem = () => {
             <Textarea placeholder="Describe the item you'd like to rent..." value={form.item} onChange={(e) => setForm({ ...form, item: e.target.value })} required className="rounded-xl" />
           </div>
 
-          {/* Dates & Size */}
           <div className="p-6 border-b border-border">
             <h3 className="font-sans font-bold text-primary mb-4 flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-amber" /> Rental Period
@@ -145,16 +169,8 @@ const RentItem = () => {
             <p className="font-sans font-semibold text-sm text-primary mb-2">Size</p>
             <div className="flex flex-wrap gap-2">
               {sizes.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSelectedSize(s)}
-                  className={`px-4 py-1.5 rounded-full border text-sm font-semibold transition-all ${
-                    selectedSize === s
-                      ? "border-amber bg-amber text-amber-foreground"
-                      : "border-border hover:border-amber hover:text-amber"
-                  }`}
-                >
+                <button key={s} type="button" onClick={() => setSelectedSize(s)}
+                  className={`px-4 py-1.5 rounded-full border text-sm font-semibold transition-all ${selectedSize === s ? "border-amber bg-amber text-amber-foreground" : "border-border hover:border-amber hover:text-amber"}`}>
                   {s}
                 </button>
               ))}
@@ -163,16 +179,8 @@ const RentItem = () => {
             <p className="font-sans font-semibold text-sm text-primary mt-4 mb-2">Occasion</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {occasions.map((o) => (
-                <button
-                  key={o.name}
-                  type="button"
-                  onClick={() => setSelectedOccasion(o.name)}
-                  className={`rounded-xl border p-3 text-center transition-all ${
-                    selectedOccasion === o.name
-                      ? "border-amber bg-amber/10"
-                      : "border-border hover:border-amber hover:bg-amber/5"
-                  }`}
-                >
+                <button key={o.name} type="button" onClick={() => setSelectedOccasion(o.name)}
+                  className={`rounded-xl border p-3 text-center transition-all ${selectedOccasion === o.name ? "border-amber bg-amber/10" : "border-border hover:border-amber hover:bg-amber/5"}`}>
                   <span className="text-xl block">{o.emoji}</span>
                   <span className="text-[11px] font-bold">{o.name}</span>
                 </button>
@@ -180,7 +188,6 @@ const RentItem = () => {
             </div>
           </div>
 
-          {/* Agreement & Signature */}
           <div className="p-6 border-b border-border">
             <h3 className="font-sans font-bold text-primary mb-4 flex items-center gap-2">
               <Pen className="h-5 w-5 text-secondary" /> Rental Agreement
@@ -202,17 +209,9 @@ const RentItem = () => {
                 <span className="text-xs text-muted-foreground">✍️ Draw your signature</span>
                 <button type="button" onClick={clearSig} className="text-xs px-2 py-1 rounded-md border border-border hover:bg-muted">Clear</button>
               </div>
-              <canvas
-                ref={canvasRef}
-                className="w-full h-[120px] cursor-crosshair touch-none bg-card"
-                onMouseDown={startDraw}
-                onMouseMove={draw}
-                onMouseUp={() => setDrawing(false)}
-                onMouseLeave={() => setDrawing(false)}
-                onTouchStart={startDraw}
-                onTouchMove={draw}
-                onTouchEnd={() => setDrawing(false)}
-              />
+              <canvas ref={canvasRef} className="w-full h-[120px] cursor-crosshair touch-none bg-card"
+                onMouseDown={startDraw} onMouseMove={draw} onMouseUp={() => setDrawing(false)} onMouseLeave={() => setDrawing(false)}
+                onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={() => setDrawing(false)} />
             </div>
 
             <label className="flex items-center gap-3 bg-amber/5 border border-amber/20 rounded-xl px-4 py-3 cursor-pointer">
@@ -223,19 +222,17 @@ const RentItem = () => {
             </label>
           </div>
 
-          {/* Submit */}
           <div className="p-6 bg-gradient-to-r from-amber/10 to-amber/20 flex items-center justify-between flex-wrap gap-4">
             <div>
               <h4 className="font-sans font-bold text-amber text-sm">Ready to rent?</h4>
               <p className="text-xs text-muted-foreground">We'll confirm availability within 24h</p>
             </div>
-            <Button type="submit" className="gradient-amber text-amber-foreground rounded-xl px-8 font-bold hover:shadow-lg transition-all">
-              Submit Request 🎉
+            <Button type="submit" disabled={submitting} className="gradient-amber text-amber-foreground rounded-xl px-8 font-bold hover:shadow-lg transition-all">
+              {submitting ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Submitting...</> : "Submit Request 🎉"}
             </Button>
           </div>
         </form>
       </section>
-
       <Footer />
     </div>
   );

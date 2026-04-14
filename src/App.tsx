@@ -11,6 +11,7 @@ import Cart from "./pages/Cart";
 import Profile from "./pages/Profile";
 import ListItem from "./pages/ListItem";
 import RentItem from "./pages/RentItem";
+import ClothingRental from "./pages/ClothingRental";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 

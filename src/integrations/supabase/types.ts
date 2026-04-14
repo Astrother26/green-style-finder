@@ -61,6 +61,42 @@ export type Database = {
           },
         ]
       }
+      clothing_items: {
+        Row: {
+          availability: boolean
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          price_per_day: number
+          size: string
+        }
+        Insert: {
+          availability?: boolean
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          price_per_day?: number
+          size?: string
+        }
+        Update: {
+          availability?: boolean
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          price_per_day?: number
+          size?: string
+        }
+        Relationships: []
+      }
       listings: {
         Row: {
           category: string | null
@@ -293,6 +329,7 @@ export type Database = {
       rentals: {
         Row: {
           city: string | null
+          clothing_item_id: string | null
           created_at: string | null
           end_date: string | null
           id: string
@@ -303,10 +340,12 @@ export type Database = {
           size: string | null
           start_date: string | null
           status: string | null
+          total_price: number | null
           user_id: string
         }
         Insert: {
           city?: string | null
+          clothing_item_id?: string | null
           created_at?: string | null
           end_date?: string | null
           id?: string
@@ -317,10 +356,12 @@ export type Database = {
           size?: string | null
           start_date?: string | null
           status?: string | null
+          total_price?: number | null
           user_id: string
         }
         Update: {
           city?: string | null
+          clothing_item_id?: string | null
           created_at?: string | null
           end_date?: string | null
           id?: string
@@ -331,9 +372,17 @@ export type Database = {
           size?: string | null
           start_date?: string | null
           status?: string | null
+          total_price?: number | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rentals_clothing_item_id_fkey"
+            columns: ["clothing_item_id"]
+            isOneToOne: false
+            referencedRelation: "clothing_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rentals_user_id_fkey"
             columns: ["user_id"]

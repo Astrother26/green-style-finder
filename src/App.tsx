@@ -11,6 +11,7 @@ import Cart from "./pages/Cart";
 import Profile from "./pages/Profile";
 import ListItem from "./pages/ListItem";
 import RentItem from "./pages/RentItem";
+import ClothingRental from "./pages/ClothingRental";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -30,7 +31,8 @@ const App = () => (
             <Route path="/cart" element={<Cart />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/list" element={<ListItem />} />
-            <Route path="/rent" element={<RentItem />} />
+            <Route path="/rent" element={<ClothingRental />} />
+            <Route path="/rent/custom" element={<RentItem />} />
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      addresses: {
+        Row: {
+          city: string
+          created_at: string
+          full_address: string
+          id: string
+          is_default: boolean
+          label: string
+          landmark: string | null
+          pincode: string
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          full_address: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          landmark?: string | null
+          pincode: string
+          state: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          full_address?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          landmark?: string | null
+          pincode?: string
+          state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           added_at: string | null
@@ -286,6 +328,7 @@ export type Database = {
           eco_level: number | null
           id: string
           name: string | null
+          phone: string | null
           total_carbon_saved: number | null
           total_energy_saved: number | null
           total_items_listed: number | null
@@ -301,6 +344,7 @@ export type Database = {
           eco_level?: number | null
           id: string
           name?: string | null
+          phone?: string | null
           total_carbon_saved?: number | null
           total_energy_saved?: number | null
           total_items_listed?: number | null
@@ -316,6 +360,7 @@ export type Database = {
           eco_level?: number | null
           id?: string
           name?: string | null
+          phone?: string | null
           total_carbon_saved?: number | null
           total_energy_saved?: number | null
           total_items_listed?: number | null
@@ -328,6 +373,7 @@ export type Database = {
       }
       rentals: {
         Row: {
+          address_id: string | null
           city: string | null
           clothing_item_id: string | null
           created_at: string | null
@@ -344,6 +390,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address_id?: string | null
           city?: string | null
           clothing_item_id?: string | null
           created_at?: string | null
@@ -360,6 +407,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address_id?: string | null
           city?: string | null
           clothing_item_id?: string | null
           created_at?: string | null
@@ -376,6 +424,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rentals_address_id_fkey"
+            columns: ["address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rentals_clothing_item_id_fkey"
             columns: ["clothing_item_id"]

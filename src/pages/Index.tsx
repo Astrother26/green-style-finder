@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import ProductCard, { type Product } from "@/components/ProductCard";
 import { uploadAndRecommend, addToCart } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import SustainableFashionBanner from "@/components/SustainableFashionBanner";
 
 const sampleProducts: Product[] = [
   { name: "Organic Cotton T-Shirt", brand: "EcoWear", price: 899, image_url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop", category: "Tops", gender: "unisex", fabric: "organic_cotton", carbon_kg: 0.7, sustainability_grade: "A+", sustainability_score: 95, match_score: 0.95 },
@@ -151,6 +152,9 @@ const Index = () => {
           )}
         </motion.div>
       </section>
+
+      {/* Sustainable Fashion */}
+      <SustainableFashionBanner />
 
       {/* Features */}
       <section className="container mx-auto px-4 py-16">

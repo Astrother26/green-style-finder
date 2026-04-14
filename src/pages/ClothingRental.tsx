@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import AddressSelector from "@/components/AddressSelector";
 
 interface ClothingItem {
   id: string;
@@ -38,6 +39,7 @@ const ClothingRental = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [booking, setBooking] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -90,6 +92,11 @@ const ClothingRental = () => {
     }
     if (!selectedItem) return;
 
+    if (!selectedAddressId) {
+      toast.error("Please select a delivery address");
+      return;
+    }
+
     setBooking(true);
     try {
       const { error } = await supabase.from("rentals").insert({
@@ -101,7 +108,8 @@ const ClothingRental = () => {
         end_date: endDate,
         total_price: totalPrice,
         occasion: selectedItem.category,
-      });
+        address_id: selectedAddressId,
+      } as any);
       if (error) throw error;
 
       toast.success(`Booked "${selectedItem.name}" for ${rentalDays} days! 🎉`);
@@ -343,6 +351,8 @@ const ClothingRental = () => {
                         />
                       </div>
                     </div>
+
+                    <AddressSelector selectedAddressId={selectedAddressId} onSelect={setSelectedAddressId} />
 
                     {rentalDays > 0 && (
                       <motion.div

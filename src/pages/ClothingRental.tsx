@@ -112,10 +112,11 @@ const ClothingRental = () => {
 
     setBooking(true);
     try {
+      const isListing = selectedItem.id.startsWith("listing-");
       const { error } = await supabase.from("rentals").insert({
         user_id: user.id,
         item_name: selectedItem.name,
-        clothing_item_id: selectedItem.id,
+        clothing_item_id: isListing ? null : selectedItem.id,
         size: selectedItem.size,
         start_date: startDate,
         end_date: endDate,

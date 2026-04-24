@@ -296,7 +296,7 @@ const ClothingRental = () => {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 rounded-2xl">
           {selectedItem && (
             <>
-              <div className="relative aspect-[4/3] sm:aspect-[16/9] overflow-hidden rounded-t-2xl">
+              <div className="relative h-48 sm:h-56 overflow-hidden rounded-t-2xl">
                 <img
                   src={selectedItem.image_url || "/placeholder.svg"}
                   alt={selectedItem.name}

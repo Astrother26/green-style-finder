@@ -343,7 +343,7 @@ const ClothingRental = () => {
                     <h4 className="font-bold text-primary mb-3 flex items-center gap-2">
                       <Calendar className="h-5 w-5 text-amber" /> Select Rental Dates
                     </h4>
-                    <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="grid grid-cols-2 gap-3 mb-4">
                       <div>
                         <label className="text-xs text-muted-foreground font-medium mb-1 block">Start Date</label>
                         <Input
@@ -351,7 +351,8 @@ const ClothingRental = () => {
                           min={today}
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className="rounded-xl"
+                          onClick={(e) => (e.currentTarget as any).showPicker?.()}
+                          className="rounded-xl cursor-pointer"
                         />
                       </div>
                       <div>
@@ -361,12 +362,15 @@ const ClothingRental = () => {
                           min={startDate || today}
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
-                          className="rounded-xl"
+                          onClick={(e) => (e.currentTarget as any).showPicker?.()}
+                          className="rounded-xl cursor-pointer"
                         />
                       </div>
                     </div>
 
-                    <AddressSelector selectedAddressId={selectedAddressId} onSelect={setSelectedAddressId} />
+                    <div className="mb-4">
+                      <AddressSelector selectedAddressId={selectedAddressId} onSelect={setSelectedAddressId} />
+                    </div>
 
                     {rentalDays > 0 && (
                       <motion.div

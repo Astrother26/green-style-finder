@@ -20,7 +20,8 @@ const Login = () => {
     try {
       if (isSignup) {
         await signUp(form.email, form.password, form.name);
-        toast.success("Account created! Check your email to confirm. 🌱");
+        toast.success("Account created! Welcome to EcoThrift 🌱");
+        navigate("/");
       } else {
         await signIn(form.email, form.password);
         toast.success("Welcome back! 🌿");

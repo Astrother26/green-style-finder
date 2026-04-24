@@ -47,16 +47,29 @@ const ClothingRental = () => {
 
   const fetchItems = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("clothing_items")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
+    const [itemsRes, listingsRes] = await Promise.all([
+      supabase.from("clothing_items").select("*").order("created_at", { ascending: false }),
+      supabase.from("listings").select("*").eq("status", "active").order("created_at", { ascending: false }),
+    ]);
+
+    if (itemsRes.error) {
       toast.error("Failed to load clothing items");
-      console.error(error);
-    } else {
-      setItems(data || []);
+      console.error(itemsRes.error);
     }
+
+    const baseItems = (itemsRes.data || []) as ClothingItem[];
+    const userListings: ClothingItem[] = (listingsRes.data || []).map((l: any) => ({
+      id: `listing-${l.id}`,
+      name: l.title,
+      category: (l.category || "Casual"),
+      size: l.size || "M",
+      price_per_day: Math.max(50, Math.round((l.price || 500) / 10)),
+      image_url: (l.images && l.images[0]) || null,
+      availability: true,
+      description: l.description || "Listed by community member",
+    }));
+
+    setItems([...userListings, ...baseItems]);
     setLoading(false);
   };
 
